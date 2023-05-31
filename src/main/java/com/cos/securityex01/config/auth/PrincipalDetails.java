@@ -12,7 +12,14 @@ import com.cos.securityex01.model.User;
 
 import lombok.Data;
 
-// Authentication 객체에 저장할 수 있는 유일한 타입
+// 시큐리티 /login 주소 요청이 오면 낚아채서 로그인을 진행시킨다.
+// 로그인을 진행이 완료가 되면 security session 을 만들어준다. (Security ContextHolder)
+// 오브젝트 -> Authentication 객체 (User 정보)
+
+// User 타입 -> UserDetails 타입 객체
+// Security Session => Authentication => UserDetails(PrincipleDetails)
+
+// 	Authentication 객체에 저장할 수 있는 유일한 타입
 public class PrincipalDetails implements UserDetails, OAuth2User{
 
 	private static final long serialVersionUID = 1L;
@@ -29,7 +36,19 @@ public class PrincipalDetails implements UserDetails, OAuth2User{
 		this.user = user;
 		this.attributes = attributes;
 	}
-	
+
+	// 해당 User 의 권한을 리턴하는 메서드
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		Collection<GrantedAuthority> collet = new ArrayList<GrantedAuthority>();
+
+		collet.add((GrantedAuthority) () -> user.getRole());
+//		collet.add(()->{ return user.getRole();});
+
+
+		return collet;
+	}
+
 	public User getUser() {
 		return user;
 	}
@@ -61,15 +80,10 @@ public class PrincipalDetails implements UserDetails, OAuth2User{
 
 	@Override
 	public boolean isEnabled() {
+		// 휴면 계정
 		return true;
 	}
-	
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		Collection<GrantedAuthority> collet = new ArrayList<GrantedAuthority>();
-		collet.add(()->{ return user.getRole();});
-		return collet;
-	}
+
 
 	// 리소스 서버로 부터 받는 회원정보
 	@Override
